@@ -2,6 +2,10 @@ from dash import Dash , dcc, callback, Input, Output
 import pandas as pd 
 import plotly.express as px
 
+
+# Exercise:
+# add a checkbox to show all years. 
+
 # CONSTANTS 
 URL = "https://raw.githubusercontent.com/plotly/datasets/refs/heads/master/2016-weather-data-seattle.csv"
 
@@ -26,26 +30,44 @@ dd1 = dcc.Dropdown(
     id='dd-1', 
     multi=True)
 
+
+options=[
+       {'label': 'Show All', 'value': 'all'}
+   ]
+
+cb1 = dcc.Checklist(options, 
+                     inline=True, 
+                     id="cb-1")
+
 graph1 = dcc.Graph(id="histo1")
 
 # LAYOUT
 app.layout = [
     dd1,
+    cb1,
     graph1
 ]
 
 @callback(
     Output('histo1','figure'),
-    Input('dd-1','value')
+    Input('dd-1','value'), 
+    Input('cb-1', 'value')
 )
-def update_barchart(years_):
+def update_barchart(years_, cbs_):
 
-    print("Years:", years_)
+    # DEBUG: print("Years:", years_) 
 
-    # filter the dataframe by years 
-    filter_ = yearly_means_df.Year.isin(years_) 
-    filtered_df = yearly_means_df[filter_]
+    # empty df
+    filtered_df = pd.DataFrame()
 
+    # if nothing is selected, filter by dropdown
+    if not cbs_: 
+        # filter the dataframe by years 
+        filter_ = yearly_means_df.Year.isin(years_) 
+        filtered_df = yearly_means_df[filter_]
+    elif "all" in cbs_:
+        filtered_df = yearly_means_df
+    
     # return a new graphic 
     return px.bar( filtered_df, x='Year', y='Mean_TemperatureC')
 
