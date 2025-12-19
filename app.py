@@ -1,5 +1,6 @@
-from dash import Dash , dcc
+from dash import Dash , dcc, callback, Input, Output
 import pandas as pd 
+import plotly.express as px
 
 # CONSTANTS 
 URL = "https://raw.githubusercontent.com/plotly/datasets/refs/heads/master/2016-weather-data-seattle.csv"
@@ -26,7 +27,7 @@ weather_df['Year'] = weather_df.Date.dt.year
 # COMPONENTS 
 dd1 = dcc.Dropdown(
     weather_df['Year'].unique(), 
-    2001, 
+    [2001], 
     id='dd-1', 
     multi=True)
 
@@ -38,6 +39,26 @@ app.layout = [
     graph1
 ]
 
+@callback(
+    Output('histo1','figure'),
+    Input('dd-1','value')
+)
+def update_barchart(years_):
+
+    print("Years:", years_)
+
+    # filter the dataframe by years 
+    filter_ = weather_df.Year.isin(years_) 
+    filtered_df = weather_df[filter_]
+
+    # compute means 
+    year_means_df =  filtered_df.groupby('Year')['Mean_TemperatureC'].mean()
+
+    # return a new graphic 
+    return px.bar(year_means_df, x=year_means_df.index, y='Mean_TemperatureC')
+
+
+
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
